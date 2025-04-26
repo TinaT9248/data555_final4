@@ -1,5 +1,5 @@
 ---
-title: "Gene Network and Brain Cortex Expression Dashboard"
+title: "Brain Cortex Gene Dashboard"
 author: "Tina Teng"
 output: 
   flexdashboard::flex_dashboard:
