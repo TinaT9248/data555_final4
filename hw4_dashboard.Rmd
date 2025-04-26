@@ -1,0 +1,106 @@
+---
+title: "Gene Network and Brain Cortex Expression Dashboard"
+author: "Tina Teng"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bg: "#F9FAFB"
+      fg: "#2C3E50"
+      primary: "#1F77B4"
+      base_font:
+        google: Roboto
+      code_font:
+        google: Fira Code
+    orientation: columns
+    vertical_layout: scroll
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(readr)
+library(plotly)
+library(igraph)
+library(ggplot2)
+library(DT)
+```
+
+
+# Introduction and Visualizations
+
+This interactive dashboard presents two visualizations based on biological datasets relevant to brain tissue research. The first visualization explores **gene expression levels in the Brain Cortex** using data from the GTEx Consortium, highlighting highly or lowly expressed genes through an interactive bar chart and sortable table. The second visualization displays a **gene interaction network for the KEGG hsa04610 pathway** (Complement and Coagulation Cascades), a biological pathway implicated in neuroinflammation, blood-brain barrier dysfunction, and neurological diseases such as Alzheimer's and stroke. These interactive tools allow users to explore gene connectivity, expression variability, and potential key regulatory hubs. Together, they support a deeper understanding of biological mechanisms that influence brain health and disease.
+
+
+
+## Visualizations
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Load brain cortex expression dataset
+tissue_file <- "/Users/macair/Desktop/capstone/inter_graph/brain_cortex.csv"
+brain_data <- read_csv(tissue_file)
+
+# Create bar chart with tooltips
+p <- ggplot(brain_data, aes(x = reorder(Gene, -Expression), y = Expression,
+                            text = paste0("Gene: ", Gene, "<br>",
+                                          "Expression: ", round(Expression, 2)))) +
+  geom_bar(stat="identity", fill="steelblue") +
+  theme_minimal() +
+  labs(title="Gene Expression in Brain Cortex", x="Gene", y="Expression Level") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplotly(p, tooltip = "text")
+```
+
+
+The above bar chart presents gene expression levels in the Brain Cortex. The chart ranks genes by expression, highlighting those with higher activity in this tissue. The sortable table allows users to dynamically rank and explore gene expression values, making it easier to identify highly or lowly expressed genes in the data set.
+
+---
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Load KEGG pathway network edges
+edge_file <- "/Users/macair/Desktop/capstone/inter_graph/hsa04610_edges.csv"
+edges <- read_csv(edge_file)
+
+# Create igraph object and layout
+graph <- graph_from_data_frame(edges, directed = FALSE)
+layout <- layout_with_fr(graph)
+
+# Create interactive network graph
+plot_ly(
+  x = layout[,1],
+  y = layout[,2],
+  type = 'scatter',
+  mode = 'markers+text',
+  text = V(graph)$name,
+  marker = list(size = 10, color = 'blue'),
+  textposition = 'top center',
+  textfont = list(size = 9)
+) %>%
+  layout(
+    title = "KEGG Pathway hsa04610 Network",
+    xaxis = list(title = "X"),
+    yaxis = list(title = "Y"),
+    dragmode = "pan"
+  )
+```
+
+
+The interactive network graph visualizes the gene interactions by showing their position in the **KEGG hsa04610 pathway**, the complement and coagulation cascades pathway. It is highly relevant to brain cortex tissue because dysregulation of immune and vascular processes in this pathway has been implicated in neuroinflammation, blood-brain barrier dysfunction, and neurological diseases such as Alzheimer's and stroke. Each blue node represents a gene, and their spatial positioning is determined by force-directed layout, which places highly connected genes closer together. By zooming and panning, users can explore clusters of interconnected genes.
+
+---
+
+# Dataset Description 
+
+### About the Data
+
+The data used in this project were derived from two public sources: the GTEx Consortium's version 8 multi-tissue gene expression dataset and the KEGG pathway database for biological interaction networks. A total of 948 donors contributed to the GTEx project, and expression data were collected across 54 tissues, although sample sizes varied by tissue. For this dashboard, gene expression data from the Brain Cortex tissue were used to reflect biological variation. The gene interaction network was constructed using a KEGG pathway adjacency matrix for the hsa04610 immune system pathway. The original data sources are publicly available at https://gtexportal.org/ and https://www.genome.jp/kegg/.
+
+
+### Real-World Relevance
+
+This dashboard helps researchers and clinicians explore gene expression levels in brain tissue alongside biological interaction networks, supporting the identification of key regulatory genes. Improved understanding of gene connectivity and expression in the brain can inform studies on neurological diseases and guide future therapeutic target discovery.
+
+### Source Code
+You can view the full project files and source code on GitHub:  
+[GitHub Repository: TinaT9248/data555_final4](https://github.com/TinaT9248/data555_final4)
+
